@@ -1,0 +1,4 @@
+label,strategy,period_start,period_end,total_trades,win_rate,profit_factor,avg_r_multiple,expectancy,total_return_pct,final_equity,max_drawdown_pct,sharpe_ratio,sortino_ratio,exposure_pct,exit_stop_loss,exit_take_profit
+train,MeanReversion_v1,2025-04-02,2025-11-07,68,0.2941,0.5347,-0.5921,-23.09,-21.56,7844.33,22.95,-6.7858,-7.5862,0.018,48,20
+val,MeanReversion_v1,2025-11-07,2026-01-19,35,0.2857,0.5175,-0.6177,-25.3,-12.06,8793.98,12.51,-8.6481,-9.8319,0.021,25,10
+test,MeanReversion_v1,2026-01-19,2026-04-02,52,0.4423,1.1581,-0.1682,-4.98,-7.64,9235.9,9.88,-3.3372,-4.2027,0.0422,29,23

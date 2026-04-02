@@ -1,0 +1,4 @@
+label,strategy,period_start,period_end,total_trades,win_rate,profit_factor,avg_r_multiple,expectancy,total_return_pct,final_equity,max_drawdown_pct,sharpe_ratio,sortino_ratio,exposure_pct,exit_take_profit,exit_stop_loss
+train,MomentumContinuation_v1,2024-04-02,2025-06-14,332,0.3253,1.0002,-0.212,-7.34,-48.79,5120.71,50.62,-3.4157,-4.7452,0.097,108,224
+val,MomentumContinuation_v1,2025-06-14,2025-11-07,61,0.2623,0.6677,-0.4613,-21.76,-18.75,8124.84,18.75,-5.6049,-7.2278,0.0534,16,45
+test,MomentumContinuation_v1,2025-11-07,2026-04-02,144,0.2222,0.6138,-0.5371,-22.9,-43.93,5606.66,43.97,-8.2816,-10.7734,0.1037,32,112

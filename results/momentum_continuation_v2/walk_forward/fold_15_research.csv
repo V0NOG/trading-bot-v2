@@ -1,0 +1,4 @@
+trade_id,label,direction,entry_time,exit_time,entry_price,exit_price,exit_reason,stop_loss,take_profit,net_pnl,pnl_r,mfe_dollar,mae_dollar,total_fees,impulse_direction,pullback_count_at_entry,bars_since_impulse,atr_at_entry,atr_pct_at_entry,ema_fast_at_entry,ema_slow_at_entry
+1,fold_15_oos,long,2025-04-25 15:00:00+00:00,2025-04-25 17:45:00+00:00,95415.684,94431.1377,stop_loss,94478.3768,97592.0579,-113.1383,-1.1511,28.0625,-109.6106,19.9068,long,2,5,444.8116,0.4664,94050.42,93136.7
+2,fold_15_oos,long,2025-05-01 16:15:00+00:00,2025-05-01 20:00:00+00:00,97135.8436,96367.8981,stop_loss,96416.1062,98765.2846,-87.9281,-1.2009,23.5424,-83.7866,19.6855,long,3,5,335.5969,0.3457,95904.07,95038.94
+3,fold_15_oos,long,2025-05-02 16:15:00+00:00,2025-05-02 19:30:00+00:00,97662.0066,96908.211,stop_loss,96956.6894,99254.4765,-85.2249,-1.2061,12.1233,-85.3884,19.4924,long,3,5,328.2553,0.3363,96964.4,96166.07

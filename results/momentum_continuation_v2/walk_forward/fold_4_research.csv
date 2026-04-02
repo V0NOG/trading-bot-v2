@@ -1,0 +1,4 @@
+trade_id,label,direction,entry_time,exit_time,entry_price,exit_price,exit_reason,stop_loss,take_profit,net_pnl,pnl_r,mfe_dollar,mae_dollar,total_fees,impulse_direction,pullback_count_at_entry,bars_since_impulse,atr_at_entry,atr_pct_at_entry,ema_fast_at_entry,ema_slow_at_entry
+1,fold_4_oos,short,2024-08-28 11:45:00+00:00,2024-08-28 15:15:00+00:00,59874.2179,58674.0307,take_profit,60407.9547,58644.7084,190.5565,2.1387,238.9062,-47.7065,19.7896,short,2,6,251.8923,0.4205,59731.56,61736.29
+2,fold_4_oos,short,2024-09-04 02:15:00+00:00,2024-09-04 14:45:00+00:00,56625.673,57354.5946,stop_loss,57325.9317,54974.2059,-119.1319,-1.1228,66.3727,-144.8061,17.2696,short,2,5,335.9608,0.593,57785.46,58327.86
+3,fold_4_oos,long,2024-09-12 03:15:00+00:00,2024-09-12 12:30:00+00:00,58273.122,57715.9605,stop_loss,57744.8329,59491.8827,-106.1272,-1.1639,27.1736,-94.9729,20.0196,long,2,5,249.5785,0.4285,57472.89,56926.96

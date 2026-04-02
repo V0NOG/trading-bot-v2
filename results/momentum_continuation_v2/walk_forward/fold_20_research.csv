@@ -1,0 +1,2 @@
+trade_id,label,direction,entry_time,exit_time,entry_price,exit_price,exit_reason,stop_loss,take_profit,net_pnl,pnl_r,mfe_dollar,mae_dollar,total_fees,impulse_direction,pullback_count_at_entry,bars_since_impulse,atr_at_entry,atr_pct_at_entry,ema_fast_at_entry,ema_slow_at_entry
+1,fold_20_oos,long,2025-08-13 17:15:00+00:00,2025-08-14 00:00:00+00:00,121664.2617,123719.388,take_profit,120732.3325,123781.2786,158.8283,2.0725,180.7447,-19.317,20.179,long,2,6,435.5637,0.3582,120596.69,119771.24

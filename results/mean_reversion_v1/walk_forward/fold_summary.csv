@@ -1,0 +1,2 @@
+label,strategy,period_start,period_end,total_trades,win_rate,profit_factor,avg_r_multiple,expectancy,total_return_pct,final_equity,max_drawdown_pct,sharpe_ratio,sortino_ratio,exposure_pct,exit_stop_loss
+fold_1_oos,MeanReversion_v1,2025-06-24,2025-07-15,1,0.0,0.0,-1.3164,-62.12,-0.72,9927.88,0.72,-5.5128,-5.5114,0.0005,1

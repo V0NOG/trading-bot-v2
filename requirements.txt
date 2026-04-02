@@ -1,0 +1,13 @@
+# Trading Bot V2 — Minimal dependencies
+# The core system (data, strategy, backtest, analytics) uses only Python stdlib.
+# Optional: for charting and advanced analysis only.
+
+# No required dependencies — system uses Python stdlib only:
+# - csv, math, logging, dataclasses, datetime, pathlib, abc, typing
+
+# Optional (for charting/visualization — not required for backtesting):
+# matplotlib>=3.7.0
+# pandas>=2.0.0
+
+# Optional (for data fetching):
+# requests>=2.31.0  # Currently using urllib.request from stdlib

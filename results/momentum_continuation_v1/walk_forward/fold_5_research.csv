@@ -1,0 +1,2 @@
+trade_id,label,direction,entry_time,exit_time,entry_price,exit_price,exit_reason,stop_loss,take_profit,net_pnl,pnl_r,mfe_dollar,mae_dollar,total_fees,impulse_direction,pullback_count_at_entry,bars_since_impulse,atr_at_entry,atr_pct_at_entry,ema_fast_at_entry,ema_slow_at_entry
+1,fold_5_oos,short,2025-09-22 07:15:00+00:00,2025-09-22 13:45:00+00:00,112645.3292,113173.8205,stop_loss,113117.2619,111662.7253,-56.9348,-1.3597,41.8635,-44.6276,20.0369,short,1,4,346.3182,0.3073,114472.73,115323.72
