@@ -173,16 +173,7 @@ def main():
     # ----------------------------------------------------------------
     # Build strategy — TrendPullbackStrategy only
     # ----------------------------------------------------------------
-    strategy = TrendPullbackStrategy(
-        impulse_atr_mult   = args.impulse_atr_mult,
-        atr_stop_mult      = args.atr_stop_mult,
-        r_multiple         = args.r_multiple,
-        min_pullback_bars  = args.min_pullback_bars,
-        max_pullback_bars  = args.max_pullback_bars,
-        atr_min_pct        = args.atr_min_pct,
-        ema_slope_lookback = args.ema_slope_lookback,
-        ema_slope_min_pct  = args.ema_slope_min_pct,
-    )
+    strategy = TrendPullbackStrategy()
     print_strategy_banner(strategy)
 
     # ----------------------------------------------------------------

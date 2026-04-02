@@ -68,26 +68,26 @@ class TrendPullbackStrategy(BaseStrategy):
         ema_slow: int = 200,
         # Impulse detection
         atr_period: int = 14,
-        impulse_atr_mult: float = 1.6,    # Candle range must exceed this × ATR
+        impulse_atr_mult: float = 1.5,    # Candle range must exceed this × ATR
         # Pullback constraints
-        min_pullback_bars: int = 1,        # Must see at least this many pullback candles
-        max_pullback_bars: int = 4,        # Abandon setup if more than this many pullback candles
-        max_setup_bars: int = 8,           # Hard timeout: bars since impulse (index-based)
+        min_pullback_bars: int = 2,        # Must see at least this many pullback candles
+        max_pullback_bars: int = 3,        # Abandon setup if more than this many pullback candles
+        max_setup_bars: int = 6,           # Hard timeout: bars since impulse (index-based)
         # Volatility filters
         atr_min_pct: float = 0.003,        # ATR/close must exceed 0.3%
         flat_lookback: int = 10,           # Rolling window for flat-market filter
         # Regime filter: EMA50 slope must be steep enough to confirm trend
         ema_slope_lookback: int = 10,      # Bars to look back for EMA slope measurement
-        ema_slope_min_pct: float = 0.0015,  # EMA50 must move 0.1% in slope_lookback bars
+        ema_slope_min_pct: float = 0.001,  # EMA50 must move 0.1% in slope_lookback bars
         # Stop / target
-        atr_stop_mult: float = 1.8,        # Stop = entry ± atr_stop_mult × ATR
-        r_multiple: float = 2.0,
+        atr_stop_mult: float = 2.0,        # Stop = entry ± atr_stop_mult × ATR
+        r_multiple: float = 2.5,
         # Warmup: EMA200 needs the most bars
         warmup_bars: int = 210,
         name: str = "MomentumContinuation_v2",
 
         regime_filter_enabled: bool = True,
-        min_trend_strength_pct: float = 0.003,
+        min_trend_strength_pct: float = 0.0025,
     ):
         super().__init__(name=name)
         self.ema_fast         = ema_fast
@@ -265,31 +265,6 @@ class TrendPullbackStrategy(BaseStrategy):
         candle_range = self._highs[index] - self._lows[index]
         if candle_range <= self.impulse_atr_mult * atr_v:
             return None
-        
-        body_size = abs(close - open_)
-        if body_size < 0.5 * candle_range:
-            return None
-        
-        # Volatility expansion filter: require ATR to be expanding vs a few bars ago
-        atr_ref_index = index - 5
-        if atr_ref_index < 0:
-            return None
-
-        atr_prev = self._atr_vals[atr_ref_index]
-        if math.isnan(atr_prev):
-            return None
-
-        if atr_v <= atr_prev:
-            return None
-        
-        # Trend persistence filter: fast EMA must still be advancing
-        ema_persist_index = index - 3
-        if ema_persist_index < 0:
-            return None
-
-        ema_fast_prev = self._ema_fast_vals[ema_persist_index]
-        if math.isnan(ema_fast_prev):
-            return None
 
         # EMA50 slope: compare current EMA50 to its value N bars ago
         slope_ref_index = index - self.ema_slope_lookback
@@ -303,8 +278,6 @@ class TrendPullbackStrategy(BaseStrategy):
         # Bullish impulse in uptrend with rising EMA50
         if close > open_ and ema_f > ema_s:
             if regime != "bull":
-                return None
-            if ema_f <= ema_fast_prev:
                 return None
             if slope_pct < self.ema_slope_min_pct:
                 return None
@@ -322,8 +295,6 @@ class TrendPullbackStrategy(BaseStrategy):
         # Bearish impulse in downtrend with falling EMA50
         if close < open_ and ema_f < ema_s:
             if regime != "bear":
-                return None
-            if ema_f >= ema_fast_prev:
                 return None
             if slope_pct > -self.ema_slope_min_pct:
                 return None
@@ -381,13 +352,13 @@ class TrendPullbackStrategy(BaseStrategy):
         if direction == "long":
             is_pullback = close < prev_close
             impulse_high = self._highs[self._impulse_bar_index]
-            is_resume = close > prev_close and close > (prev_high * 0.995)
+            is_resume = close > prev_high
 
             if is_resume and self._pullback_count >= self.min_pullback_bars:
-                if close < impulse_high:
-                    return None
                 body_size = abs(close - self._opens[index])
-                if body_size < 0.3 * atr_v:
+                if body_size < 0.5 * atr_v:
+                    return None
+                if close <= impulse_high:
                     return None
                 pullback_count_snapshot  = self._pullback_count
                 bars_since_impulse       = index - self._impulse_bar_index
@@ -426,13 +397,13 @@ class TrendPullbackStrategy(BaseStrategy):
         elif direction == "short":
             is_pullback = close > prev_close
             impulse_low = self._lows[self._impulse_bar_index]
-            is_resume = close < prev_close and close < (prev_low * 1.005)
+            is_resume = close < prev_low
 
             if is_resume and self._pullback_count >= self.min_pullback_bars:
-                if close > impulse_low:
-                    return None
                 body_size = abs(close - self._opens[index])
-                if body_size < 0.3 * atr_v:
+                if body_size < 0.5 * atr_v:
+                    return None
+                if close >= impulse_low:
                     return None
                 pullback_count_snapshot  = self._pullback_count
                 bars_since_impulse       = index - self._impulse_bar_index

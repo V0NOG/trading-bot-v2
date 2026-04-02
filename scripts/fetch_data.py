@@ -156,7 +156,12 @@ def klines_to_csv(klines: list, output_path: Path, symbol: str, interval: str) -
 def main():
     parser = argparse.ArgumentParser(description="Fetch OHLCV data from Binance")
     parser.add_argument("--symbol", default="BTCUSDT", help="Trading pair (default: BTCUSDT)")
-    parser.add_argument("--interval", default="15m", help="Bar interval (default: 15m)")
+    parser.add_argument(
+        "--interval",
+        default="15m",
+        choices=sorted(INTERVAL_MS.keys()),
+        help="Bar interval (default: 15m)",
+    )
     parser.add_argument("--days", type=int, default=730, help="Days of history (default: 730)")
     parser.add_argument("--start", help="Start date YYYY-MM-DD (overrides --days)")
     parser.add_argument("--end", help="End date YYYY-MM-DD (default: today)")
