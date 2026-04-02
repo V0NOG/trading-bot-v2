@@ -40,7 +40,7 @@ from src.data.loader import DataLoader
 # ── Strategy under evaluation ────────────────────────────────────────────────
 # This is the ONLY strategy used throughout this research script.
 # There is no fallback, no factory, no default to a different strategy.
-from src.strategy.trend_pullback import TrendPullbackStrategy
+from src.strategy.compression_breakout import CompressionBreakoutStrategy
 # ─────────────────────────────────────────────────────────────────────────────
 
 from src.backtest.engine import BacktestEngine
@@ -78,6 +78,11 @@ def parse_args():
     parser.add_argument("--start", help="Start date filter YYYY-MM-DD")
     parser.add_argument("--end",   help="End date filter YYYY-MM-DD")
 
+    parser.add_argument("--max-impulse-atr-mult", type=float, default=2.8)
+    parser.add_argument("--min-ema-spread-delta-pct", type=float, default=0.0005)
+
+    parser.add_argument("--max-pullback-atr-pct", type=float, default=1.2)
+
     # Experiment
     parser.add_argument("--name",     default="momentum_continuation_v2",
                         help="Experiment name (used for output directory)")
@@ -107,6 +112,12 @@ def parse_args():
                         help="Bars to look back for EMA50 slope measurement (default: 10)")
     parser.add_argument("--ema-slope-min-pct",  type=float, default=0.001,
                         help="EMA50 must move this fraction over slope-lookback bars (default: 0.001)")
+    
+    parser.add_argument("--compression-lookback", type=int, default=12)
+    parser.add_argument("--compression-atr-threshold", type=float, default=0.8)
+    parser.add_argument("--breakout-buffer-atr", type=float, default=0.10)
+    parser.add_argument("--breakout-min-body-atr", type=float, default=0.40)
+    parser.add_argument("--atr-expansion-lookback", type=int, default=5)
 
     # Validation modes
     parser.add_argument("--walk-forward", action="store_true",
@@ -121,7 +132,7 @@ def parse_args():
     return parser.parse_args()
 
 
-def print_strategy_banner(strategy: TrendPullbackStrategy) -> None:
+def print_strategy_banner(strategy) -> None:
     """Print an unambiguous confirmation of which strategy is running."""
     print()
     print("=" * 60)
@@ -173,7 +184,17 @@ def main():
     # ----------------------------------------------------------------
     # Build strategy — TrendPullbackStrategy only
     # ----------------------------------------------------------------
-    strategy = TrendPullbackStrategy()
+    strategy = CompressionBreakoutStrategy(
+        compression_lookback=args.compression_lookback,
+        compression_atr_threshold=args.compression_atr_threshold,
+        breakout_buffer_atr=args.breakout_buffer_atr,
+        breakout_min_body_atr=args.breakout_min_body_atr,
+        atr_expansion_lookback=args.atr_expansion_lookback,
+        atr_stop_mult=args.atr_stop_mult,
+        r_multiple=args.r_multiple,
+        atr_min_pct=args.atr_min_pct,
+    )
+    
     print_strategy_banner(strategy)
 
     # ----------------------------------------------------------------

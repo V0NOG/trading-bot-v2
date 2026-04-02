@@ -73,6 +73,8 @@ class TrendPullbackStrategy(BaseStrategy):
         min_pullback_bars: int = 1,        # Must see at least this many pullback candles
         max_pullback_bars: int = 4,        # Abandon setup if more than this many pullback candles
         max_setup_bars: int = 8,           # Hard timeout: bars since impulse (index-based)
+        # Impulse quality guard: reject exhaustion candles that are too large
+        max_impulse_atr_mult: float = 2.8,
         # Volatility filters
         atr_min_pct: float = 0.003,        # ATR/close must exceed 0.3%
         flat_lookback: int = 10,           # Rolling window for flat-market filter
@@ -86,6 +88,13 @@ class TrendPullbackStrategy(BaseStrategy):
         warmup_bars: int = 210,
         name: str = "MomentumContinuation_v2",
 
+        atr_contraction_lookback: int = 10,
+        atr_contraction_threshold: float = -0.05,
+
+        max_pullback_atr_pct: float = 1.2,
+
+        min_ema_spread_delta_pct: float = 0.0005,
+
         regime_filter_enabled: bool = True,
         min_trend_strength_pct: float = 0.003,
     ):
@@ -97,6 +106,7 @@ class TrendPullbackStrategy(BaseStrategy):
         self.min_pullback_bars = min_pullback_bars
         self.max_pullback_bars = max_pullback_bars
         self.max_setup_bars   = max_setup_bars
+        self.max_impulse_atr_mult = max_impulse_atr_mult
         self.atr_min_pct          = atr_min_pct
         self.flat_lookback        = flat_lookback
         self.ema_slope_lookback   = ema_slope_lookback
@@ -104,6 +114,10 @@ class TrendPullbackStrategy(BaseStrategy):
         self.atr_stop_mult        = atr_stop_mult
         self.r_multiple           = r_multiple
         self.warmup_bars          = max(warmup_bars, ema_slow + 1, atr_period + 1, flat_lookback, ema_slope_lookback + 1)
+        self.min_ema_spread_delta_pct = min_ema_spread_delta_pct
+        self.atr_contraction_lookback = atr_contraction_lookback
+        self.atr_contraction_threshold = atr_contraction_threshold
+        self.max_pullback_atr_pct = max_pullback_atr_pct
 
         # --- Indicator cache (reset when candle list changes) ---
         self._cache_key: Optional[int] = None
@@ -234,6 +248,11 @@ class TrendPullbackStrategy(BaseStrategy):
             "r_multiple":               self.r_multiple,
             "regime_filter_enabled":    self.regime_filter_enabled,
             "min_trend_strength_pct":   self.min_trend_strength_pct,
+            "max_impulse_atr_mult": self.max_impulse_atr_mult,
+            "min_ema_spread_delta_pct": self.min_ema_spread_delta_pct,
+            "atr_contraction_lookback": self.atr_contraction_lookback,
+            "atr_contraction_threshold": self.atr_contraction_threshold,
+            "max_pullback_atr_pct": self.max_pullback_atr_pct,
         }
 
     # ------------------------------------------------------------------
@@ -262,8 +281,29 @@ class TrendPullbackStrategy(BaseStrategy):
         """
         regime = self._get_regime(index)
 
+        # --- NEW: strong trend regime filter ---
+        ema_f = self._ema_fast_vals[index]
+        ema_s = self._ema_slow_vals[index]
+        close = self._closes[index]
+
+        trend_strength = abs(ema_f - ema_s) / close
+
+        # Require STRONG trend (not just trending)
+        if trend_strength < 0.006:   # <-- key change (was ~0.003)
+            return None
+
         candle_range = self._highs[index] - self._lows[index]
-        if candle_range <= self.impulse_atr_mult * atr_v:
+        impulse_range_atr = candle_range / atr_v if atr_v > 0 else 0.0
+
+        # Must be a real impulse, but reject exhaustion spikes that are too extended.
+        if impulse_range_atr <= self.impulse_atr_mult:
+            return None
+
+        if impulse_range_atr >= self.max_impulse_atr_mult:
+            logger.debug(
+                f"Bar {index}: Rejecting impulse as exhaustion "
+                f"(range={impulse_range_atr:.2f}x ATR >= max {self.max_impulse_atr_mult:.2f}x)"
+            )
             return None
         
         body_size = abs(close - open_)
@@ -293,6 +333,47 @@ class TrendPullbackStrategy(BaseStrategy):
 
         # EMA50 slope: compare current EMA50 to its value N bars ago
         slope_ref_index = index - self.ema_slope_lookback
+
+        # --- NEW: EMA spread expansion filter (trend strengthening) ---
+        spread_now = abs(ema_f - ema_s)
+
+        spread_ref_index = index - 5
+        if spread_ref_index < 0:
+            return None
+
+        ema_f_prev = self._ema_fast_vals[spread_ref_index]
+        ema_s_prev = self._ema_slow_vals[spread_ref_index]
+
+        if math.isnan(ema_f_prev) or math.isnan(ema_s_prev):
+            return None
+
+        spread_prev = abs(ema_f_prev - ema_s_prev)
+
+        if spread_prev == 0:
+            return None
+
+        spread_delta_pct = (spread_now - spread_prev) / spread_prev
+
+        if spread_delta_pct < self.min_ema_spread_delta_pct:
+            return None
+        
+        # --- NEW: ATR contraction filter (avoid compressing markets) ---
+        atr_ref_index = index - self.atr_contraction_lookback
+        if atr_ref_index < 0:
+            return None
+
+        atr_now = atr_v
+        atr_prev = self._atr_vals[atr_ref_index]
+
+        if math.isnan(atr_prev) or atr_prev == 0:
+            return None
+
+        atr_change_pct = (atr_now - atr_prev) / atr_prev
+
+        # If ATR is contracting significantly → skip
+        if atr_change_pct < self.atr_contraction_threshold:
+            return None
+
         if slope_ref_index < 0:
             return None
         ema_f_ref = self._ema_fast_vals[slope_ref_index]
@@ -383,7 +464,28 @@ class TrendPullbackStrategy(BaseStrategy):
             impulse_high = self._highs[self._impulse_bar_index]
             is_resume = close > prev_close and close > (prev_high * 0.995)
 
+            # --- NEW: Pullback depth filter (structure protection) ---
+            impulse_high = self._highs[self._impulse_bar_index]
+
+            # Only evaluate true pullback bars AFTER the impulse bar
+            if index > self._impulse_bar_index:
+                pullback_low = min(self._lows[self._impulse_bar_index + 1:index + 1])
+                pullback_depth = impulse_high - pullback_low
+
+                # If pullback is too deep relative to ATR → structure likely broken
+                if pullback_depth > (self.max_pullback_atr_pct * atr_v):
+                    self._reset_state()
+                    return None
+
             if is_resume and self._pullback_count >= self.min_pullback_bars:
+                # --- NEW: breakout strength filter ---
+                prev_high = self._highs[index - 1]
+                breakout_strength = (close - prev_high) / atr_v
+
+                # Require meaningful break above previous high
+                if breakout_strength < 0.2:
+                    return None
+                
                 if close < impulse_high:
                     return None
                 body_size = abs(close - self._opens[index])
@@ -428,7 +530,25 @@ class TrendPullbackStrategy(BaseStrategy):
             impulse_low = self._lows[self._impulse_bar_index]
             is_resume = close < prev_close and close < (prev_low * 1.005)
 
+            # --- NEW: Pullback depth filter ---
+            impulse_low = self._lows[self._impulse_bar_index]
+
+            # Only evaluate true pullback bars AFTER the impulse bar
+            if index > self._impulse_bar_index:
+                pullback_high = max(self._highs[self._impulse_bar_index + 1:index + 1])
+                pullback_depth = pullback_high - impulse_low
+
+                if pullback_depth > (self.max_pullback_atr_pct * atr_v):
+                    self._reset_state()
+                    return None
+
             if is_resume and self._pullback_count >= self.min_pullback_bars:
+                # --- NEW: breakout strength filter ---
+                prev_low = self._lows[index - 1]
+                breakout_strength = (prev_low - close) / atr_v
+
+                if breakout_strength < 0.2:
+                    return None
                 if close > impulse_low:
                     return None
                 body_size = abs(close - self._opens[index])

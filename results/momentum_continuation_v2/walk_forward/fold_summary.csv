@@ -1,5 +1,5 @@
 label,strategy,period_start,period_end,total_trades,win_rate,profit_factor,avg_r_multiple,expectancy,total_return_pct,final_equity,max_drawdown_pct,sharpe_ratio,sortino_ratio,exposure_pct,exit_stop_loss,exit_take_profit
-fold_1_oos,MomentumContinuation_v2,2025-03-01,2025-05-24,11,0.5455,2.0277,0.4331,40.99,3.57,10356.86,3.01,2.5524,4.2278,0.113,5,6
-fold_2_oos,MomentumContinuation_v2,2025-05-24,2025-08-15,11,0.2727,0.5106,-0.378,-45.15,-5.94,9406.25,6.04,-7.2391,-9.4852,0.0715,8,3
-fold_3_oos,MomentumContinuation_v2,2025-08-15,2025-11-06,9,0.6667,3.2248,0.7661,71.81,5.65,10565.09,2.92,4.8825,8.0767,0.087,3,6
-fold_4_oos,MomentumContinuation_v2,2025-11-06,2026-01-29,9,0.4444,1.3086,0.138,9.27,0.08,10008.41,4.08,-0.0624,-0.093,0.0345,5,4
+fold_1_oos,CompressionBreakout_v1,2025-03-01,2025-05-24,1,0.0,0.0,-1.202,-73.93,-0.81,9918.57,0.81,-5.0038,-5.2334,0.0015,1,
+fold_2_oos,CompressionBreakout_v1,2025-05-24,2025-08-15,0,0.0,inf,0.0,0.0,0.0,10000.0,0.0,0.0,inf,0.0,,
+fold_3_oos,CompressionBreakout_v1,2025-08-15,2025-11-06,1,0.0,0.0,-1.1435,-100.49,-1.08,9892.02,1.08,-9.6495,-9.6408,0.002,1,
+fold_4_oos,CompressionBreakout_v1,2025-11-06,2026-01-29,2,0.5,0.9387,0.2224,-10.6,-0.36,9964.32,1.65,-1.9113,-2.6411,0.017,1,1
