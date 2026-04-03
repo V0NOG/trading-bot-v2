@@ -67,7 +67,7 @@ def setup_logging(verbose: bool = False):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Momentum Continuation strategy backtest on BTCUSDT 15m",
+        description="Compression Breakout strategy backtest on BTCUSDT",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
@@ -78,13 +78,8 @@ def parse_args():
     parser.add_argument("--start", help="Start date filter YYYY-MM-DD")
     parser.add_argument("--end",   help="End date filter YYYY-MM-DD")
 
-    parser.add_argument("--max-impulse-atr-mult", type=float, default=2.8)
-    parser.add_argument("--min-ema-spread-delta-pct", type=float, default=0.0005)
-
-    parser.add_argument("--max-pullback-atr-pct", type=float, default=1.2)
-
     # Experiment
-    parser.add_argument("--name",     default="momentum_continuation_v2",
+    parser.add_argument("--name",     default="compression_breakout_v2",
                         help="Experiment name (used for output directory)")
     parser.add_argument("--equity",   type=float, default=10_000.0,
                         help="Initial equity in USD (default: 10000)")
@@ -102,22 +97,31 @@ def parse_args():
                         help="Stop loss = N×ATR from entry (default: 2.0)")
     parser.add_argument("--r-multiple",       type=float, default=2.5,
                         help="Take profit R multiple (default: 2.5)")
-    parser.add_argument("--min-pullback-bars", type=int,  default=2,
-                        help="Require at least N pullback candles before entry (default: 2)")
-    parser.add_argument("--max-pullback-bars", type=int,  default=3,
-                        help="Abandon setup after N pullback candles (default: 3)")
+
     parser.add_argument("--atr-min-pct",      type=float, default=0.003,
                         help="Minimum ATR/close for volatility filter (default: 0.003)")
-    parser.add_argument("--ema-slope-lookback", type=int, default=10,
-                        help="Bars to look back for EMA50 slope measurement (default: 10)")
-    parser.add_argument("--ema-slope-min-pct",  type=float, default=0.001,
-                        help="EMA50 must move this fraction over slope-lookback bars (default: 0.001)")
     
-    parser.add_argument("--compression-lookback", type=int, default=12)
-    parser.add_argument("--compression-atr-threshold", type=float, default=0.8)
-    parser.add_argument("--breakout-buffer-atr", type=float, default=0.10)
-    parser.add_argument("--breakout-min-body-atr", type=float, default=0.40)
-    parser.add_argument("--atr-expansion-lookback", type=int, default=5)
+    parser.add_argument("--compression-lookback", type=int, default=8,
+                        help="Bars in the tight pre-breakout range")
+    parser.add_argument("--structure-lookback", type=int, default=24,
+                        help="Broader lookback used to measure relative compression")
+
+    parser.add_argument("--compression-ratio-threshold", type=float, default=0.60,
+                        help="Recent range / prior range must be <= this value")
+    parser.add_argument("--compression-max-atr-multiple", type=float, default=2.2,
+                        help="Reject setups where the recent base is already too wide in ATR terms")
+
+    parser.add_argument("--breakout-buffer-atr", type=float, default=0.05,
+                        help="ATR buffer added beyond the squeeze range for breakout confirmation")
+    parser.add_argument("--breakout-min-range-atr", type=float, default=0.90,
+                        help="Breakout bar must have at least this many ATRs of total range")
+    parser.add_argument("--breakout-close-location-min", type=float, default=0.65,
+                        help="For longs, close must finish in top X%% of bar; inverse for shorts")
+
+    parser.add_argument("--atr-expansion-lookback", type=int, default=5,
+                        help="Compare current ATR to ATR N bars ago")
+    parser.add_argument("--atr-expansion-min-ratio", type=float, default=1.00,
+                        help="Current ATR must be at least this multiple of ATR N bars ago")
 
     # Validation modes
     parser.add_argument("--walk-forward", action="store_true",
@@ -139,7 +143,7 @@ def print_strategy_banner(strategy) -> None:
     print("  STRATEGY CONFIRMATION")
     print(f"  Class : {strategy.__class__.__name__}")
     print(f"  Name  : {strategy.name}")
-    print(f"  Module: src/strategy/trend_pullback.py")
+    print(f"  Module: src/strategy/compression_breakout.py")
     print("  Parameters:")
     for k, v in strategy.parameter_dict().items():
         print(f"    {k:<25} {v}")
@@ -186,15 +190,23 @@ def main():
     # ----------------------------------------------------------------
     strategy = CompressionBreakoutStrategy(
         compression_lookback=args.compression_lookback,
-        compression_atr_threshold=args.compression_atr_threshold,
+        structure_lookback=args.structure_lookback,
+
+        compression_ratio_threshold=args.compression_ratio_threshold,
+        compression_max_atr_multiple=args.compression_max_atr_multiple,
+
         breakout_buffer_atr=args.breakout_buffer_atr,
-        breakout_min_body_atr=args.breakout_min_body_atr,
+        breakout_min_range_atr=args.breakout_min_range_atr,
+        breakout_close_location_min=args.breakout_close_location_min,
+
         atr_expansion_lookback=args.atr_expansion_lookback,
+        atr_expansion_min_ratio=args.atr_expansion_min_ratio,
+
         atr_stop_mult=args.atr_stop_mult,
         r_multiple=args.r_multiple,
         atr_min_pct=args.atr_min_pct,
     )
-    
+
     print_strategy_banner(strategy)
 
     # ----------------------------------------------------------------

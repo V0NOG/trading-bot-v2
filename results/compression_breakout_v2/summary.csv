@@ -1,0 +1,4 @@
+label,strategy,period_start,period_end,total_trades,win_rate,profit_factor,avg_r_multiple,expectancy,total_return_pct,final_equity,max_drawdown_pct,sharpe_ratio,sortino_ratio,exposure_pct,exit_take_profit,exit_stop_loss,exit_end_of_data
+train,CompressionBreakout_v2_relative_squeeze,2024-04-02,2025-06-14,43,0.3953,1.4197,0.2297,20.82,5.86,10585.78,12.71,0.8244,1.2095,0.112,17,26,
+val,CompressionBreakout_v2_relative_squeeze,2025-06-14,2025-11-07,10,0.4,1.2235,-0.0216,3.42,-0.56,9944.12,3.76,-0.5254,-0.754,0.0705,3,6,1
+test,CompressionBreakout_v2_relative_squeeze,2025-11-07,2026-04-02,16,0.5625,2.7709,0.7937,78.03,11.39,11139.11,3.97,5.1498,8.5404,0.1059,9,7,
